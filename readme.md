@@ -36,7 +36,7 @@ Like this:
 
 ```objc
 NSInteger result = repFuncInfo.call.as_int(self, _cmd);
-NSRect result = repFuncInfo.call.as_range(self, _cmd);
+NSRect result = repFuncInfo.call.as_rect(self, _cmd);
 NSObject* result = repFuncInfo.call.as_id(self, _cmd);
 ```
 
