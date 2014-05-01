@@ -8,7 +8,10 @@
 
 #import <objc/message.h>
 
-union KZRIMPUnion {
+#ifndef KZRIMPUNION
+#define KZRIMPUNION
+
+typedef union KZRIMPUnion {
     IMP as_id;
     void (*as_void)(id, SEL, ...);
     void* (*as_pointer)(id, SEL, ...);
@@ -23,7 +26,11 @@ union KZRIMPUnion {
     CGSize (*as_size)(id, SEL, ...);
     CGPoint (*as_point)(id, SEL, ...);
     NSRange (*as_range)(id, SEL, ...);
-};
+} KZRIMPUnion;
+
+#endif
+#ifndef KZRMETHODSWIZZLINGINFO
+#define KZRMETHODSWIZZLINGINFO
 
 typedef struct KZRMethodSwizzlingInfo {
     IMP newIMP;
@@ -34,8 +41,14 @@ typedef struct KZRMethodSwizzlingInfo {
     union KZRIMPUnion call;
 } KZRMethodSwizzlingInfo;
 
+#endif
+
+#ifndef KZRClassMethod
+
 #define KZRClassMethod YES
 #define KZRInstanceMethod NO
+
+#endif
 
 BOOL KZRMethodSwizzling(KZRMethodSwizzlingInfo* rep);
 

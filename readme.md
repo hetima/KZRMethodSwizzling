@@ -3,7 +3,33 @@
 One of a means of Method Swizzling.  
 This library replaces method with function. It does not use dummy method.
 
-Example:
+##Swizzling with Block
+
+```objc
+#import "KZRMethodSwizzlingWithBlock.h"
+
++ (void)load {
+
+    KZRMETHOD_SWIZZLING_(
+        "NSView",
+        "frame",
+        KZRInstanceMethod, originalIMP, originalSelector)
+    ^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
+        NSRect result=originalIMP.as_rect(rself, originalSelector);
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            NSLog(@"frame=%@", NSStringFromRect(result));
+        });
+        return result;
+    }_WITHBLOCK
+
+}
+```
+
+This irregular macro gathers together code and definition. Easy to communicate with your object using block capture.
+
+
+##Swizzling with C Function
 
 ```objc
 #import "KZRMethodSwizzling.h"
