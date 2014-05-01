@@ -1,7 +1,7 @@
 #KZRMethodSwizzling
 
 One of a means of Method Swizzling.  
-This library replaces method with function. It does not use dummy method.
+This library replaces method with function or Block. It does not use dummy method.
 
 ##Swizzling with Block
 
