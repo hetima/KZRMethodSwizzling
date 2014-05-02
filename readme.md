@@ -35,9 +35,9 @@ KZRMETHOD_SWIZZLING_WITHBLOCK(
             dispatch_once(&onceToken, ^{
                 NSLog(@"frame=%@", NSStringFromRect(result));
             });
-        return result;
-        });
-
+            return result;
+        }
+    );
 }
 ```
 
