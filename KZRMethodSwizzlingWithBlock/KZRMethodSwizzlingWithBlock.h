@@ -39,10 +39,13 @@ typedef union KZRIMPUnion {
 /*
 
  KZRMETHOD_SWIZZLING_(
-     const char* className, const char* selectorName,
-     BOOL isClassMethod, (variable name of)KZRIMPUnion originalIMP, (variable name of)SEL originalSelector)
+     const char* className, //Class name
+     const char* selectorName,  //SEL name
+     BOOL isClassMethod, //method type class(YES or KZRClassMethod) or instance(NO or KZRInstanceMethod)
+     KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
+     SEL originalSelector) //variable name of SEL (will be declared by #define macro)
  ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
-    ...
+    //swizzling code
  }_WITHBLOCK
  
  */

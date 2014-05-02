@@ -8,6 +8,20 @@ This library replaces method with function or Block. It does not use dummy metho
 ```objc
 #import "KZRMethodSwizzlingWithBlock.h"
 
+/*
+usage:
+KZRMETHOD_SWIZZLING_(
+     const char* className, // Class name
+     const char* selectorName,  // SEL name
+     BOOL isClassMethod, // method type. class(KZRClassMethod) or instance(KZRInstanceMethod)
+     KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
+     SEL originalSelector) // variable name of SEL (will be declared by #define macro)
+ ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
+    // swizzling code
+ }_WITHBLOCK
+ 
+*/
+
 + (void)load {
 
     KZRMETHOD_SWIZZLING_(
@@ -28,6 +42,35 @@ This library replaces method with function or Block. It does not use dummy metho
 
 This irregular macro gathers together code and definition. Easy to communicate with your object using block capture.
 
+originalIMP is pointer to original method implementation. This is `IMP` but declared as `union` which clearly defines return value.
+
+```c
+typedef union KZRIMPUnion {
+    IMP as_id;
+    void (*as_void)(id, SEL, ...);
+    void* (*as_pointer)(id, SEL, ...);
+    
+    char (*as_char)(id, SEL, ...);
+    int (*as_int)(id, SEL, ...);
+    long long (*as_long_long)(id, SEL, ...);
+    double (*as_double)(id, SEL, ...);
+    
+    CGFloat (*as_float)(id, SEL, ...);
+    CGRect (*as_rect)(id, SEL, ...);
+    CGSize (*as_size)(id, SEL, ...);
+    CGPoint (*as_point)(id, SEL, ...);
+    NSRange (*as_range)(id, SEL, ...);
+} KZRIMPUnion;
+```
+Example:
+
+```objc
+NSObject* result = originalIMP.as_id(rself, originalSelector);
+NSInteger result = originalIMP.as_int(rself, originalSelector);
+NSRect result = originalIMP.as_rect(rself, originalSelector);
+originalIMP.as_void(rself, originalSelector);
+```
+KZRIMPUnion works well with ARC.
 
 ##Swizzling with C Function
 
@@ -56,18 +99,9 @@ static KZRMethodSwizzlingInfo repFuncInfo = {
 }
 ```
 
-`KZRMethodSwizzlingInfo.call` is pointer to original method implementation. This is union which clearly defines return value.
+KZRMethodSwizzlingInfo.`call` is `union KZRIMPUnion`.
 
-Like this:
-
-```objc
-NSInteger result = repFuncInfo.call.as_int(self, _cmd);
-NSRect result = repFuncInfo.call.as_rect(self, _cmd);
-NSObject* result = repFuncInfo.call.as_id(self, _cmd);
-```
-
-
-`KZRMethodSwizzlingInfo.representedObject` is useful bridge with obj-c world. But it is `__unsafe_unretained`. It must be retained somewhere else.
+KZRMethodSwizzlingInfo.`representedObject` is useful bridge with obj-c world. But it is `__unsafe_unretained`. It must be retained somewhere else.
 
 
 ## Author
