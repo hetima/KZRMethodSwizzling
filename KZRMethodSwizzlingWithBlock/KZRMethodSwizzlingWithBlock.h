@@ -37,20 +37,36 @@ typedef union KZRIMPUnion {
 #endif
 
 /*
-
- KZRMETHOD_SWIZZLING_(
-     const char* className, //Class name
-     const char* selectorName,  //SEL name
-     BOOL isClassMethod, //method type class(YES or KZRClassMethod) or instance(NO or KZRInstanceMethod)
-     KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
-     SEL originalSelector) //variable name of SEL (will be declared by #define macro)
- ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
-    //swizzling code
- }_WITHBLOCK
+ 
+KZRMETHOD_SWIZZLING_WITHBLOCK(
+    const char* className, //Class name
+    const char* selectorName,  //SEL name
+    BOOL isClassMethod, //method type class(YES or KZRClassMethod) or instance(NO or KZRInstanceMethod)
+    KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
+    SEL originalSelector, //variable name of SEL (will be declared by #define macro)
+    ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
+        //swizzling code
+    }
+);
  
  */
 
+// v2
+#define KZRMETHOD_SWIZZLING_WITHBLOCK(className, selectorName, isClassMethod, originalIMP, originalSelector, block) {\
+Class _val_cls=objc_getClass(className); \
+SEL originalSelector=sel_registerName(selectorName); \
+Method _val_originalMethod; \
+BOOL isClassMethodVal=isClassMethod; \
+if (isClassMethodVal)_val_originalMethod = class_getClassMethod(_val_cls, originalSelector); \
+else _val_originalMethod = class_getInstanceMethod(_val_cls, originalSelector); \
+KZRIMPUnion originalIMP = (KZRIMPUnion)(IMP)method_getImplementation(_val_originalMethod); \
+if (originalIMP.as_id) { id _val_block=block \
+;IMP _val_newImp = imp_implementationWithBlock(_val_block); \
+method_setImplementation(_val_originalMethod, _val_newImp); \
+} \
+}
 
+// v1 obsoleted
 #define KZRMETHOD_SWIZZLING_(className, selectorName, isClassMethod, originalIMP, originalSelector) {\
 Class _val_cls=objc_getClass(className); \
 SEL originalSelector=sel_registerName(selectorName); \
@@ -70,17 +86,18 @@ method_setImplementation(_val_originalMethod, _val_newImp); \
 // example
 #if 0
 
-KZRMETHOD_SWIZZLING_(
-     "NSView",
-     "frame",
-     KZRInstanceMethod, originalIMP, originalSelector)
-^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
-    NSRect result=originalIMP.as_rect(rself, originalSelector);
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        NSLog(@"frame=%@", NSStringFromRect(result));
-    });
-    return result;
-}_WITHBLOCK
+KZRMETHOD_SWIZZLING_WITHBLOCK(
+    "NSView",
+    "frame",
+    KZRInstanceMethod, originalIMP, originalSelector,
+    ^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
+        NSRect result=originalIMP.as_rect(rself, originalSelector);
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            NSLog(@"frame=%@", NSStringFromRect(result));
+        });
+        return result;
+    }
+);
 
 #endif

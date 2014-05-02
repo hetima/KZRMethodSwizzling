@@ -10,37 +10,38 @@ This library replaces method with function or Block. It does not use dummy metho
 
 /*
 usage:
-KZRMETHOD_SWIZZLING_(
-     const char* className, // Class name
-     const char* selectorName,  // SEL name
-     BOOL isClassMethod, // method type. class(KZRClassMethod) or instance(KZRInstanceMethod)
-     KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
-     SEL originalSelector) // variable name of SEL (will be declared by #define macro)
- ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
+KZRMETHOD_SWIZZLING_WITHBLOCK(
+  const char* className, // Class name
+  const char* selectorName,  // SEL name
+  BOOL isClassMethod, // method type. class(KZRClassMethod) or instance(KZRInstanceMethod)
+  KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
+  SEL originalSelector, // variable name of SEL (will be declared by #define macro)
+  ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
     // swizzling code
- }_WITHBLOCK
+  }
+);
  
 */
 
 + (void)load {
 
-    KZRMETHOD_SWIZZLING_(
+    KZRMETHOD_SWIZZLING_WITHBLOCK(
         "NSView",
         "frame",
-        KZRInstanceMethod, originalIMP, originalSelector)
-    ^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
-        NSRect result=originalIMP.as_rect(rself, originalSelector);
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            NSLog(@"frame=%@", NSStringFromRect(result));
-        });
+        KZRInstanceMethod, originalIMP, originalSelector,
+        ^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
+            NSRect result=originalIMP.as_rect(rself, originalSelector);
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                NSLog(@"frame=%@", NSStringFromRect(result));
+            });
         return result;
-    }_WITHBLOCK
+        });
 
 }
 ```
 
-This irregular macro gathers together code and definition. Easy to communicate with your object using block capture.
+This macro gathers together code and definition. Easy to communicate with your object using block capture.
 
 originalIMP is pointer to original method implementation. This is `IMP` but declared as `union` which clearly defines return value.
 
