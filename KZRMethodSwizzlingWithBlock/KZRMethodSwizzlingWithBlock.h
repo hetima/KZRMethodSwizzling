@@ -53,11 +53,13 @@ KZRMETHOD_SWIZZLING_WITHBLOCK(
 
 // v2
 #define KZRMETHOD_SWIZZLING_WITHBLOCK(className, selectorName, isClassMethod, originalIMP, originalSelector, block) {\
+BOOL _val_isClassMethod=isClassMethod; \
+const char* _val_selName=selectorName; \
+if(*_val_selName=='+'){_val_isClassMethod=YES; _val_selName++;} \
 Class _val_cls=objc_getClass(className); \
-SEL originalSelector=sel_registerName(selectorName); \
+SEL originalSelector=sel_registerName(_val_selName); \
 Method _val_originalMethod; \
-BOOL isClassMethodVal=isClassMethod; \
-if (isClassMethodVal)_val_originalMethod = class_getClassMethod(_val_cls, originalSelector); \
+if (_val_isClassMethod)_val_originalMethod = class_getClassMethod(_val_cls, originalSelector); \
 else _val_originalMethod = class_getInstanceMethod(_val_cls, originalSelector); \
 KZRIMPUnion originalIMP = (KZRIMPUnion)(IMP)method_getImplementation(_val_originalMethod); \
 if (originalIMP.as_id) { id _val_block=block \
