@@ -43,7 +43,7 @@ KZRMETHOD_SWIZZLING_WITHBLOCK(
 
 This macro gathers together code and definition. Easy to communicate with your object using block capture.
 
-If selectorName has prefix `'+'`, the macro treats it as ClassMethod regardless of `BOOL isClassMethod`.
+If `selectorName` has prefix `'+'`, the macro treats it as ClassMethod regardless of `isClassMethod`.
 
 originalIMP is pointer to original method implementation. This is `IMP` but declared as `union` which clearly defines return value.
 
