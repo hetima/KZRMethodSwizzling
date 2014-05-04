@@ -33,6 +33,7 @@ typedef union KZRIMPUnion {
 
 #define KZRClassMethod YES
 #define KZRInstanceMethod NO
+#define KZRMethodInspection NO
 
 #endif
 
