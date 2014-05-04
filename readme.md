@@ -75,7 +75,13 @@ originalIMP.as_void(rself, originalSelector);
 ```
 KZRIMPUnion works well with ARC.
 
+
+
+
+
 ##Swizzling with C Function
+
+This is complicated way. I recommend using Block.
 
 ```objc
 #import "KZRMethodSwizzling.h"
