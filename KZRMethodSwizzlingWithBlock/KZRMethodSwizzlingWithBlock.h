@@ -69,18 +69,20 @@ method_setImplementation(_val_originalMethod, _val_newImp); \
 } \
 }
 
-// v1 obsoleted
+// v1
 #define KZRMETHOD_SWIZZLING_(className, selectorName, isClassMethod, originalIMP, originalSelector) {\
+BOOL _val_isClassMethod=isClassMethod; \
+const char* _val_selName=selectorName; \
+if(*_val_selName=='+'){_val_isClassMethod=YES; _val_selName++;} \
 Class _val_cls=objc_getClass(className); \
-SEL originalSelector=sel_registerName(selectorName); \
+SEL originalSelector=sel_registerName(_val_selName); \
 Method _val_originalMethod; \
-BOOL isClassMethodVal=isClassMethod; \
-if (isClassMethodVal)_val_originalMethod = class_getClassMethod(_val_cls, originalSelector); \
+if (_val_isClassMethod)_val_originalMethod = class_getClassMethod(_val_cls, originalSelector); \
 else _val_originalMethod = class_getInstanceMethod(_val_cls, originalSelector); \
 KZRIMPUnion originalIMP = (KZRIMPUnion)(IMP)method_getImplementation(_val_originalMethod); \
-if (originalIMP.as_id) { id block=
+if (originalIMP.as_id) { id _val_block=
 
-#define _WITHBLOCK ;IMP _val_newImp = imp_implementationWithBlock(block); \
+#define _WITHBLOCK ;IMP _val_newImp = imp_implementationWithBlock(_val_block); \
 method_setImplementation(_val_originalMethod, _val_newImp); \
 } \
 }
@@ -102,5 +104,15 @@ KZRMETHOD_SWIZZLING_WITHBLOCK(
         return result;
     }
 );
+
+
+KZRMETHOD_SWIZZLING_(
+    "MYClass",
+    "+classmethod",
+    KZRMethodInspection, originalIMP, originalSelector)
+^NSRect (id rself, id arg1){  // SEL is not brought (id self, arg1, arg2...)
+    NSRect result=originalIMP.as_rect(rself, originalSelector, arg1);
+    return result;
+}_WITHBLOCK;
 
 #endif
