@@ -1,116 +1,74 @@
 #KZRMethodSwizzling
 
 One of a means of Method Swizzling.  
-This library replaces method with function or Block. It does not use dummy method.
+This library replaces method with Block. It does not use dummy method.  
+It works with `ENABLE_STRICT_OBJC_MSGSEND`.
 
-##Swizzling with Block
+
+##Description
 
 ```objc
 #import "KZRMethodSwizzlingWithBlock.h"
 
 /*
 usage:
-KZRMETHOD_SWIZZLING_WITHBLOCK(
+KZRMETHOD_SWIZZLING_(
   const char* className, // Class name
-  const char* selectorName,  // SEL name
-  BOOL isClassMethod, // method type. class(KZRClassMethod) or instance(KZRInstanceMethod)
-  KZRIMPUnion originalIMP, // variable name of original IMP (will be declared by #define macro)
-  SEL originalSelector, // variable name of SEL (will be declared by #define macro)
-  ^ (id rself, ...){  // SEL is not brought (id self, arg1, arg2...)
+  const char* selectorName,  // SEL name. add prefix "+" for class method.
+  return type, //specify method return type like id, void, NSRect...
+  original IMP name, // variable name of original IMP (will be declared by #define macro)
+  SEL originalSelector) // variable name of SEL (will be declared by #define macro)
+  ^ (id hookedObject, ...){  // SEL is not brought (id slf, arg1, arg2...)
     // swizzling code
   }
-);
+)_WITHBLOCK;
  
 */
 
+//example:
 + (void)load {
 
-    KZRMETHOD_SWIZZLING_WITHBLOCK(
-        "NSView",
-        "frame",
-        KZRInstanceMethod, originalIMP, originalSelector,
-        ^NSRect (id rself){  // SEL is not brought (id self, arg1, arg2...)
-            NSRect result=originalIMP.as_rect(rself, originalSelector);
-            static dispatch_once_t onceToken;
-            dispatch_once(&onceToken, ^{
-                NSLog(@"frame=%@", NSStringFromRect(result));
-            });
-            return result;
-        }
-    );
+    KZRMETHOD_SWIZZLING_(
+        "NSView", "initWithFrame:",
+        id, originalIMP, sel)
+    ^id (id slf, NSRect frame){  // SEL is not brought (id self, arg1, arg2...)
+        id result=originalIMP(slf, sel, frame);
+            
+        return result;
+    }_WITHBLOCK;
+
 }
 ```
 
 This macro gathers together code and definition. Easy to communicate with your object using block capture.
 
-If `selectorName` has prefix `'+'`, the macro treats it as ClassMethod regardless of `isClassMethod`.
-
-originalIMP is pointer to original method implementation. This is `IMP` but declared as `union` which clearly defines return value.
-
-```c
-typedef union KZRIMPUnion {
-    IMP as_id;
-    void (*as_void)(id, SEL, ...);
-    void* (*as_pointer)(id, SEL, ...);
-    
-    char (*as_char)(id, SEL, ...);
-    int (*as_int)(id, SEL, ...);
-    long long (*as_long_long)(id, SEL, ...);
-    double (*as_double)(id, SEL, ...);
-    
-    CGFloat (*as_float)(id, SEL, ...);
-    CGRect (*as_rect)(id, SEL, ...);
-    CGSize (*as_size)(id, SEL, ...);
-    CGPoint (*as_point)(id, SEL, ...);
-    NSRange (*as_range)(id, SEL, ...);
-} KZRIMPUnion;
-```
-Example:
+If `selectorName` has prefix `'+'`, the macro treats it as ClassMethod.
 
 ```objc
-NSObject* result = originalIMP.as_id(rself, originalSelector);
-NSInteger result = originalIMP.as_int(rself, originalSelector);
-NSRect result = originalIMP.as_rect(rself, originalSelector);
-originalIMP.as_void(rself, originalSelector);
+KZRMETHOD_SWIZZLING_("NSNotificationCenter", "+defaultCenter", id, call, sel)
+^id (id slf){
+    ...
+}_WITHBLOCK;
 ```
-KZRIMPUnion works well with ARC.
 
-
-
-
-
-##Swizzling with C Function
-
-This is complicated way. I recommend using Block.
+If you hook `dealloc`, must use `__unsafe_unretained`.
 
 ```objc
-#import "KZRMethodSwizzling.h"
-
-static void repFunc(id self, SEL _cmd, id obj)
-{
-    repFuncInfo.call.as_void(self, _cmd, obj); //call original method
-    id rep = repFuncInfo.representedObject;
-    [rep someMethod:obj];
-}
-
-static KZRMethodSwizzlingInfo repFuncInfo = {
-    (IMP)repFunc,
-    "ClassName",
-    "selector:name:",
-    KZRInstanceMethod,
-    nil,
-    NULL
-};
-
-+ (void)load {
-    repFuncInfo.representedObject = someRetainedObject;
-    KZRMethodSwizzling(&repFuncInfo);
-}
+KZRMETHOD_SWIZZLING_("NSView", "dealloc", void, call, sel)
+^ (__unsafe_unretained id slf){
+    call(slf, sel, frame);
+    //Don't touch after call original dealloc.
+}_WITHBLOCK;
 ```
 
-KZRMethodSwizzlingInfo.`call` is `union KZRIMPUnion`.
+This macro returns error value. You can write like this.
 
-KZRMethodSwizzlingInfo.`representedObject` is useful bridge with obj-c world. But it is `__unsafe_unretained`. It must be retained somewhere else.
+```objc
+NSInteger error = KZRMETHOD_SWIZZLING_ ... _WITHBLOCK;
+if (error==KZRMethodSwizzlingErrorClassNotFound) {
+    //...
+}
+```
 
 
 ## Author
