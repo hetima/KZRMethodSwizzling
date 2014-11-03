@@ -5,7 +5,7 @@ This library replaces method with Block. It does not use dummy method.
 It works with `ENABLE_STRICT_OBJC_MSGSEND`.
 
 
-##Description
+##Swizzling Method
 
 ```objc
 #import "KZRMethodSwizzlingWithBlock.h"
@@ -28,8 +28,7 @@ KZRMETHOD_SWIZZLING_(
 //example:
 + (void)load {
 
-    KZRMETHOD_SWIZZLING_(
-        "NSView", "initWithFrame:",
+    KZRMETHOD_SWIZZLING_("NSView", "initWithFrame:",
         id, originalIMP, sel)
     ^id (id slf, NSRect frame){  // SEL is not brought (id self, arg1, arg2...)
         id result=originalIMP(slf, sel, frame);
@@ -65,10 +64,43 @@ This macro returns error value. You can write like this.
 
 ```objc
 NSInteger error = KZRMETHOD_SWIZZLING_ ... _WITHBLOCK;
-if (error==KZRMethodSwizzlingErrorClassNotFound) {
+if (error!=KZRMethodSwizzlingNoError) {
     //...
 }
 ```
+
+
+##Adding Method
+
+```objc
+#import "KZRMethodSwizzlingWithBlock.h"
+/*
+ KZRMETHOD_ADDING_(
+ const char* className, //Class name.
+ const char* superClassName, // Super Class name that has method.
+ const char* selectorName,  //SEL name. add prefix "+" for class method.
+ return type, //specify method return type like id, void, NSRect...
+ superIMP, // variable name of super IMP (will be declared by #define macro)
+ SEL originalSelector //variable name of SEL (will be declared by #define macro)
+ )
+ ^return-type (id slf, id arg1, id arg2...){  // SEL is not brought (id self, arg1, arg2...)
+
+ id result=superIMP(slf, originalSelector, arg1, arg2...); // almost same as objc_msgSendSuper()
+ return result;
+ }_WITHBLOCK_ADD;
+ 
+ */
+
+
+KZRMETHOD_ADDING_("SubTableCellView", "NSTableCellView", "setObjectValue:",
+ void, call_super, sel)
+^void (NSTableCellView* slf, id value){
+    call_super(slf, sel, value); //call -[NSTableCellView setObjectValue:]
+}_WITHBLOCK_ADD;
+```
+Super class must have selectorName method. Target class must not have selectorName method.
+
+
 
 
 ## Author
