@@ -20,8 +20,7 @@ KZRMETHOD_SWIZZLING_(
   SEL originalSelector) // variable name of SEL (will be declared by #define macro)
   ^ (id hookedObject, ...){  // SEL is not brought (id slf, arg1, arg2...)
     // swizzling code
-  }
-)_WITHBLOCK;
+  }_WITHBLOCK;
  
 */
 
