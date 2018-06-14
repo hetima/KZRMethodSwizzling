@@ -1,11 +1,11 @@
-#KZRMethodSwizzling
+# KZRMethodSwizzling
 
 One of a means of Method Swizzling.  
 This library replaces method with Block. It does not use dummy method.  
 It works with `ENABLE_STRICT_OBJC_MSGSEND`.
 
 
-##Swizzling Method
+## Swizzling Method
 
 ```objc
 #import "KZRMethodSwizzlingWithBlock.h"
@@ -69,7 +69,7 @@ if (error!=KZRMethodSwizzlingNoError) {
 ```
 
 
-##Adding Method
+## Adding Method
 
 ```objc
 #import "KZRMethodSwizzlingWithBlock.h"
@@ -107,7 +107,8 @@ Super class must have selectorName method. Target class must not have selectorNa
 http://hetima.com/  
 https://twitter.com/hetima
 
-##License
+## License
+
 WTFPL 2.0
 ```
            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
